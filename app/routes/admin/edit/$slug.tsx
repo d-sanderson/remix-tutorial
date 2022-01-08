@@ -1,7 +1,8 @@
 import invariant from "tiny-invariant";
 import { useTransition, useActionData, Form, redirect, LoaderFunction, useLoaderData } from "remix";
 import type { ActionFunction } from "remix";
-import { createPost, getPost } from "~/post";
+import { createPost, getPost, Post } from "~/post";
+import { useState } from "react";
 
 type PostError = {
 title?: boolean
@@ -41,28 +42,32 @@ export const action: ActionFunction = async ({
   invariant(typeof slug === "string");
   invariant(typeof markdown === "string");
   
-  await createPost({ title, slug, markdown });
+  await createPost({ title, slug, markdown, });
 
   return redirect("/admin");
+
 };
 export default function EditPost() {
  
   const errors = useActionData();
   const transition = useTransition();
-
   const post = useLoaderData();
-
+  const [updatedPost, setUpdatedPost] = useState(post)
+  const handleChange = (e) => {
+      setUpdatedPost(prev => ({ ...prev, [e.target.name] : e.target.value}))
+  }
+  console.log(post)
   return (
     <Form method="post">
       <p>
         <label>
-          Post Title: <input value={post.title} type="text" name="title" />
+          Post Title: <input value={updatedPost.title} type="text" name="title" onChange={handleChange} />
           {errors?.title && <em>Title is required</em>}
         </label>
       </p>
       <p>
         <label>
-          Post Slug: <input type="text" name="slug" />
+          Post Slug: <input value={updatedPost.slug} type="text" name="slug" onChange={handleChange} />
           {errors?.slug && <em>Slug is required</em>}
         </label>
       </p>
@@ -70,7 +75,7 @@ export default function EditPost() {
         <label htmlFor="markdown">Markdown:</label>
             {errors?.markdown && <em>Markdown is required</em>}
         <br />
-        <textarea id="markdown" rows={20} name="markdown" />
+        <textarea id="markdown" value={updatedPost.markdown} rows={20} name="markdown" onChange={handleChange} />
       </p>
       <p>
         <button type="submit">Update Post</button>
